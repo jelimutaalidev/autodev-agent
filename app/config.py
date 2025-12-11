@@ -4,7 +4,7 @@ from langchain_groq import ChatGroq
 from langchain_core.rate_limiters import InMemoryRateLimiter
 
 # Load environment variables
-load_dotenv(r"C:\Users\jey\Dev\.env", override=True)
+load_dotenv(os.path.join("..", ".env"), override=True)
 
 # Rate Limiter Configuration
 # 10 requests per minute (approx every 6 seconds)
