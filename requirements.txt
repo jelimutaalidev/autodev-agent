@@ -6,3 +6,5 @@ pytest
 langchain-google-genai
 langchain-groq
 rich
+langchain-openai
+langchain-anthropic

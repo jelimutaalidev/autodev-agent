@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from langchain_groq import ChatGroq
+from langchain.chat_models import init_chat_model
 from langchain_core.rate_limiters import InMemoryRateLimiter
 
 # Load environment variables
@@ -14,12 +14,19 @@ rate_limiter = InMemoryRateLimiter(
     max_bucket_size=5
 )
 
-# Initialize Model (Groq)
-# Using openai/gpt-oss-120b as requested
-# Note: Ensure GROQ_API_KEY is set in your environment
-model = ChatGroq(
-    model="openai/gpt-oss-120b",
-    temperature=0,
-    max_retries=2,
-    rate_limiter=rate_limiter
-)
+# Initialize Model
+# Support for "provider:model" format (e.g. "groq:llama3-70b-8192")
+llm_model = os.getenv("LLM_MODEL", "openai:gpt-4o")
+
+if ":" in llm_model:
+    provider, model_name = llm_model.split(":", 1)
+    model = init_chat_model(
+        model_name, 
+        model_provider=provider, 
+        rate_limiter=rate_limiter
+    )
+else:
+    model = init_chat_model(
+        llm_model, 
+        rate_limiter=rate_limiter
+    )

@@ -19,7 +19,7 @@
 ## 🛠️ Tech Stack
 
 *   **Core**: Python 3.12+
-*   **LLM Hosting**: [Groq](https://groq.com/) (using `openai/gpt-oss-120b`)
+*   **LLM Support**: Multi-Provider (Groq, OpenAI, Google Gemini, Anthropic, etc.) via LangChain's `init_chat_model`
 *   **Orchestration**: LangChain & LangGraph
 *   **Agent Framework**: Deep Agents (Custom Wrapper)
 *   **UI/CLI**: Rich
@@ -53,13 +53,27 @@ AutoDev uses a graph-based control flow:
     ```bash
     pip install -r requirements.txt
     ```
+    > **Note**: Essential integration packages (like `langchain-openai`, `langchain-anthropic`) are included, but you must ensure you have valid API keys for your chosen provider.
 
 4.  **Configure Environment**:
-    Create a `.env` file in the project root (or one directory up) and add your API keys:
-    ```env
-    GROQ_API_KEY=your_groq_api_key_here
+    
+    Rename the example configuration file to `.env`:
+    ```bash
+    cp .env.example .env
     ```
-    > **Note**: This project is configured to use **Groq** hosting the **`openai/gpt-oss-120b`** model for high-speed inference.
+
+    Open `.env` and configure the `LLM_MODEL` variable to select your provider and model. The app uses LangChain's `init_chat_model` for dynamic loading.
+
+    ### Configuration Examples
+
+    | Provider | `LLM_MODEL` Value | Required API Key |
+    | :--- | :--- | :--- |
+    | **Groq** | `groq:llama3-70b-8192` | `GROQ_API_KEY` |
+    | **OpenAI** | `openai:gpt-4o` | `OPENAI_API_KEY` |
+    | **Google** | `google_genai:gemini-1.5-flash` | `GOOGLE_API_KEY` |
+    | **Anthropic** | `anthropic:claude-3-5-sonnet-latest` | `ANTHROPIC_API_KEY` |
+
+    *Uncomment and set the corresponding API KEY in your `.env` file.*
 
 ## 🏃 Usage
 
