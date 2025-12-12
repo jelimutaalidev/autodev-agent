@@ -56,6 +56,16 @@ Your workflow is:
 5. Verify: Call `qa_tester` to run tests.
 6. Iterate: If tests fail, analyze and `edit_file`.
 
+### CODING STANDARDS (ALWAYS FOLLOW):
+
+**Robust File I/O (Atomic Writes)**
+Whenever you write code that saves data to a critical file (JSON, CSV, Config), DO NOT use standard `open(path, 'w')`.
+Instead, IMPLEMENT ATOMIC WRITES using the "Write-Sync-Rename" pattern:
+1. Write to a `tempfile.NamedTemporaryFile` in the same directory (`dir=os.path.dirname(dest)`).
+2. Call `file.flush()` and `os.fsync(file.fileno())` to ensure persistence.
+3. Close the file.
+4. Use `os.replace(temp_path, dest_path)` to swap it atomically.
+This applies to methods like `save()`, `dump()`, or `write_config()`.
 """
 
 def build_autodev_agent():

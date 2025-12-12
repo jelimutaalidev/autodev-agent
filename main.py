@@ -72,7 +72,7 @@ def main():
     agent = build_autodev_agent()
     
     # 3. Initial input
-    initial_message = "Buatkan fungsi untuk menghitung luas lingkaran"
+    initial_message = input("User: ")
     config = {"configurable": {"thread_id": "autodev-session-1", "recursion_limit": 50}}
     
     # Initial invocation with streaming
