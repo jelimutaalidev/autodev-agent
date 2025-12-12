@@ -4,38 +4,12 @@ from langchain.tools import tool
 
 # Constants
 SANDBOX_DIR = "./my_project_sandbox"
-TEST_FILE_PATH = os.path.join(SANDBOX_DIR, "test_calculator.py")
 
 def setup_environment():
-    """Sets up the sandbox directory and a dummy failing test file (Hard Mode)."""
+    """Sets up the sandbox directory."""
     if not os.path.exists(SANDBOX_DIR):
         os.makedirs(SANDBOX_DIR)
         print(f"Created sandbox directory: {SANDBOX_DIR}")
-
-    # Create difficult test file with specific edge cases
-    test_content = """import pytest
-
-def test_add():
-    from calculator import add
-    assert add(2, 3) == 5
-
-def test_subtract():
-    from calculator import subtract
-    assert subtract(10, 5) == 5
-
-def test_divide():
-    from calculator import divide
-    # Normal case
-    assert divide(10, 2) == 5
-    
-    # Edge case: Division by zero MUST raise ValueError
-    # (The agent usually forgets this or raises ZeroDivisionError instead, causing a failure)
-    with pytest.raises(ValueError):
-        divide(10, 0)
-"""
-    with open(TEST_FILE_PATH, "w") as f:
-        f.write(test_content)
-    print(f"Created dummy test file for Hard Mode: {TEST_FILE_PATH}")
 
 @tool
 def run_tests() -> str:
@@ -80,3 +54,30 @@ def run_tests() -> str:
             
     except Exception as e:
         return f"Error running tests: {str(e)}"
+
+@tool
+def create_test_file(filename: str, content: str) -> str:
+    """
+    Creates a new Python test file in the sandbox directory.
+    
+    Args:
+        filename (str): The name of the file. MUST start with 'test_' and end with '.py'.
+        content (str): The content of the test file (pytest code).
+        
+    Returns:
+        str: Status message indicating success or failure, including the full path.
+    """
+    if not filename.startswith("test_") or not filename.endswith(".py"):
+        return f"Error: Filename '{filename}' must start with 'test_' and end with '.py'."
+    
+    full_path = os.path.join(SANDBOX_DIR, filename)
+    
+    if os.path.exists(full_path):
+        return f"Error: File '{full_path}' already exists. Please use edit_file to modify it."
+        
+    try:
+        with open(full_path, "w", encoding='utf-8') as f:
+            f.write(content)
+        return f"Successfully created test file at: {os.path.abspath(full_path)}"
+    except Exception as e:
+        return f"Error creating test file: {str(e)}"

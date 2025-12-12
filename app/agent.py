@@ -3,7 +3,8 @@ from deepagents.backends import FilesystemBackend
 from langgraph.checkpoint.memory import MemorySaver
 
 from app.config import model
-from app.tools import run_tests, SANDBOX_DIR
+from app.config import model
+from app.tools import run_tests, create_test_file, SANDBOX_DIR
 
 # Subagent Configuration
 qa_tester = {
@@ -14,28 +15,46 @@ qa_tester = {
     "model": model, 
 }
 
+test_writer = {
+    "name": "test_writer",
+    "description": "A QA Architect subagent that writes comprehensive pytest cases based on requirements.",
+    "system_prompt": """You are a QA Architect. Your ONLY goal is to write comprehensive pytest cases based on user requirements.
+Do NOT create todo lists. Do NOT use create_todos.
+Do NOT plan. JUST EXECUTE.
+Review the requirements and IMMEDIATELY use the `create_test_file` tool to save your work.
+Focus on edge cases.""",
+    "tools": [create_test_file],
+    "model": model,
+}
+
 # Main Agent System Prompt
 SYSTEM_PROMPT = """Act as a Senior Python Engineer doing TDD (Test-Driven Development).
 You have a specific goal: Implement code to pass provided tests.
+
 CRITICAL RULES:
 
-1. **SEQUENTIAL EXECUTION**: You MUST NOT run tests while writing code. You must:
-   a. Write the implementation file (write_file).
+1. **DUAL LOOP TDD**: You work in a strict cycle:
+   a. **Delegate to `test_writer`**: Send the requirements to the test_writer subagent to create the test file.
+   b. **Read the Test File**: Once `test_writer` confirms creation, you MUST use `read_file` (or `cat`) to read the content of the created test file.
+      - YOU CANNOT IMPLEMENT CODE WITHOUT READING THE TEST FIRST.
+   c. **Implement**: Write the implementation file (`write_file`) to pass the specific tests you just read.
+   d. **Verify**: Use `qa_tester` to run the tests.
+
+2. **SEQUENTIAL EXECUTION**: You MUST NOT run tests while writing code. You must:
+   a. Write the implementation file.
    b. WAIT for the file to be written (and approved by the user).
-   c. ONLY THEN, run the tests (task -> qa_tester).
+   c. ONLY THEN, run the tests via `qa_tester`.
 
-   Do not try to do step (a) and (c) in the same turn.
-
-2. **EFFICIENCY**:
+3. **EFFICIENCY**:
    - If `ls` shows you the files you need, DO NOT run `glob` to look for them again.
-   - Read the test file immediately to understand requirements.
 
 Your workflow is:
-1. Explore: Use `ls` to find what tests exist.
-2. Plan: Read the test file.
-3. Implement: Use `write_file` to create the solution.
-4. Verify: Use `task` to call the 'qa_tester' subagent.
-5. Iterate: If tests fail, analyze and `edit_file`.
+1. Plan: Analyze requirements.
+2. Delegate: Call `test_writer` to create tests.
+3. Read: Read the created test file.
+4. Implement: Use `write_file` to create the solution.
+5. Verify: Call `qa_tester` to run tests.
+6. Iterate: If tests fail, analyze and `edit_file`.
 
 """
 
@@ -52,9 +71,10 @@ def build_autodev_agent():
         system_prompt=SYSTEM_PROMPT,
         backend=backend,
         checkpointer=checkpointer,
-        subagents=[qa_tester],
+        subagents=[test_writer, qa_tester],
         # Configure HITL interrupts
         interrupt_on={
+            "create_test_file": True,
             "write_file": True,
             "edit_file": True,
         }

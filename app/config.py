@@ -4,7 +4,11 @@ from langchain.chat_models import init_chat_model
 from langchain_core.rate_limiters import InMemoryRateLimiter
 
 # Load environment variables
-load_dotenv(os.path.join("..", ".env"), override=True)
+# Load environment variables
+# Ensure we look for .env in the project root relative to this file
+current_dir = os.path.dirname(os.path.abspath(__file__))
+env_path = os.path.join(current_dir, "..", ".env")
+load_dotenv(env_path, override=True)
 
 # Rate Limiter Configuration
 # 10 requests per minute (approx every 6 seconds)
@@ -16,7 +20,13 @@ rate_limiter = InMemoryRateLimiter(
 
 # Initialize Model
 # Support for "provider:model" format (e.g. "groq:llama3-70b-8192")
-llm_model = os.getenv("LLM_MODEL", "openai:gpt-4o")
+llm_model = os.getenv("LLM_MODEL")
+
+if not llm_model:
+    raise ValueError(
+        "LLM_MODEL environment variable is missing. "
+        "Please create a .env file and set LLM_MODEL (e.g., LLM_MODEL=groq:llama3-70b-8192)."
+    )
 
 if ":" in llm_model:
     provider, model_name = llm_model.split(":", 1)

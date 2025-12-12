@@ -72,7 +72,7 @@ def main():
     agent = build_autodev_agent()
     
     # 3. Initial input
-    initial_message = "Please implement the calculator module to pass ALL tests in test_calculator.py. Be careful with edge cases."
+    initial_message = "Buatkan fungsi untuk menghitung luas lingkaran"
     config = {"configurable": {"thread_id": "autodev-session-1", "recursion_limit": 50}}
     
     # Initial invocation with streaming
